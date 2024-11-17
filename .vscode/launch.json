@@ -1,0 +1,21 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python Debugger: Run Sim",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/run_sim.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--config", "configs/demo_1.json"
+            ],
+            "env": {
+                "CUDA_VISIBLE_DEVICES": "0"
+            }
+        }
+    ]
+}

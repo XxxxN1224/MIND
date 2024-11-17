@@ -49,6 +49,7 @@ conda activate mind
 ### Install dependencies
 ```
 pip install -r requirements.txt 
+【另外可能需要安装：mkl-service】
 ```
 
 ## 🕹️ Run a closed-loop simulation
