@@ -12,35 +12,45 @@ class ArgoAgentLoader:
         self.data_path = data_path
 
     def load_agents(self, smp, cl_agt_cfg=None):
-        cl_agts = self.get_closed_loop_agents(cl_agt_cfg)
-        trajs_info = self.get_trajs_info(smp)
+        """
+        根据 语义地图信息 和 闭环智能体配置 加载智能体实体。
+
+        参数:
+            smp: 语义地图 SemanticMap。
+            cl_agt_cfg: 闭环智能体的配置信息，指示如何初始化和配置闭环智能体。
+
+        返回:
+            初始化后的智能体实体列表，包括每个智能体的配置信息和行为预测模型。
+        """
+        cl_agts = self.get_closed_loop_agents(cl_agt_cfg)   # 获取闭环智能体的配置和初始化信息
+        trajs_info = self.get_trajs_info(smp)   # smp: 语义地图 SemanticMap。
         agents = []
         for traj_pos, traj_ang, traj_vel, traj_type, traj_tid, traj_cat, has_flag in zip(*trajs_info):
             traj_info = [traj_pos, traj_ang, traj_vel, has_flag]
-            if traj_tid in cl_agts:
-                agent_file, agent_name = cl_agts[traj_tid]["agent"].split(':')
-                planner_cfg = cl_agts[traj_tid]["planner_config"]
-                # get planner type
-                agent = getattr(import_module(agent_file), agent_name)()
+            if traj_tid in cl_agts: # 检查当前实体是否为闭环智能体
+                agent_file, agent_name = cl_agts[traj_tid]["agent"].split(':')  # 分割以获取智能体的文件路径和类名
+                planner_cfg = cl_agts[traj_tid]["planner_config"]   # 获取智能体的规划器配置
+                # get planner type 动态导入智能体类并实例化
+                agent = getattr(import_module(agent_file), agent_name)()    # Python 内置函数，用于获取对象的属性值
 
-                if isinstance(agent, MINDAgent):
-                    agt_clr = AgentColor().ego_disable()
+                if isinstance(agent, MINDAgent):    # isinstance 是 Python 内置的一个函数，用于检查一个对象是否是指定类的实例
+                    agt_clr = AgentColor().ego_disable()    # 设置MINDAgent类型的智能体颜色，禁用自车渲染
 
                 agent.init(traj_tid, traj_type, traj_cat, traj_info, smp, agt_clr,
-                           semantic_lane_id=cl_agts[traj_tid]["semantic_lane"],
-                           target_velocity=cl_agts[traj_tid]["target_velocity"])
+                        semantic_lane_id=cl_agts[traj_tid]["semantic_lane"],
+                        target_velocity=cl_agts[traj_tid]["target_velocity"])
 
-                agent.set_enable_timestep(cl_agts[traj_tid]["enable_timestep"])
-                agent.init_planner(planner_cfg)
+                agent.set_enable_timestep(cl_agts[traj_tid]["enable_timestep"]) # 设置智能体的启用时间步
+                agent.init_planner(planner_cfg) # 使用配置初始化智能体的规划器
 
-                if isinstance(agent, MINDAgent):
+                if isinstance(agent, MINDAgent):    # 对于MINDAgent类型的智能体，更新其目标车道信息
                     agent.update_target_lane(smp, cl_agts[traj_tid]["semantic_lane"])
 
             else:
-                agent = NonReactiveAgent()
-                agt_clr = AgentColor().exo()
+                agent = NonReactiveAgent()  # 对于未配置为闭环智能体的实体，初始化为非反应型智能体
+                agt_clr = AgentColor().exo()    # 设置非反应型智能体的颜色
                 agent.init(traj_tid, traj_type, traj_cat, traj_info, smp, agt_clr)
-            agents.append(agent)
+            agents.append(agent)    # 将初始化后的智能体添加到智能体列表中
         return agents
 
 

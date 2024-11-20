@@ -44,9 +44,9 @@ class Simulator:
 
     def init_sim(self):
         self.agents = []
-        scenario_path = Path(self.seq_path + f"/scenario_{self.seq_id}.parquet")
+        scenario_path = Path(self.seq_path + f"/scenario_{self.seq_id}.parquet")    # 构造场景文件路径
         replay_agent_loader = ArgoAgentLoader(scenario_path)
-        self.agents += replay_agent_loader.load_agents(self.smp, self.cl_agents)
+        self.agents += replay_agent_loader.load_agents(self.smp, self.cl_agents)    # 只有一个是MIND定义的，其他都是env的且没有交互
 
     def run_sim(self):
         print("Running simulation...")
