@@ -22,8 +22,8 @@ class ArgoAgentLoader:
         返回:
             初始化后的智能体实体列表，包括每个智能体的配置信息和行为预测模型。
         """
-        cl_agts = self.get_closed_loop_agents(cl_agt_cfg)   # 获取闭环智能体的配置和初始化信息
-        trajs_info = self.get_trajs_info(smp)   # smp: 语义地图 SemanticMap。
+        cl_agts = self.get_closed_loop_agents(cl_agt_cfg)   # 获取AV的config
+        trajs_info = self.get_trajs_info(smp)   # 获取SemanticMap信息
         agents = []
         for traj_pos, traj_ang, traj_vel, traj_type, traj_tid, traj_cat, has_flag in zip(*trajs_info):
             traj_info = [traj_pos, traj_ang, traj_vel, has_flag]

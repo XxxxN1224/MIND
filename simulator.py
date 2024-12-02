@@ -82,7 +82,7 @@ class Simulator:
                     if pl_tri:
                         agent.update_observation(agent_obs)
                         if agent.is_enable:  # if enable then plan to get control
-                            is_success, res = agent.plan()
+                            is_success, res = agent.plan()  # ego veh在4s后被使能开始规划
                             if not is_success:
                                 print("Agent {} plan failed!".format(agent.id))
                                 terminated = True
