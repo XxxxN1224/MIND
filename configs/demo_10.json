@@ -1,14 +1,14 @@
 {
     "sim_name": "demo_10",
-    "seq_id": "23c73ba4-14e7-4012-a9c1-d1acfd31a2c5",
+    "seq_id": "98bbb3ab-ec71-4308-98e3-5443e8916d6f",
     "output_dir": "outputs/demo_10/",
     "num_threads": 16,
     "render": true,
     "render_config": {
         "mode": "fixed",
         "camera_position": {
-            "x": 632,
-            "y":  1865,
+            "x": 4947,
+            "y":  3336,
             "yaw": 0,
             "elev": 90
         }
