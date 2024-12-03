@@ -2,7 +2,7 @@ import pandas as pd
 from av2.map.map_api import ArgoverseStaticMap
 from pathlib import Path
 
-id = '23c73ba4-14e7-4012-a9c1-d1acfd31a2c5'
+id = '3df7a6c0-5f19-490f-89df-931cfdb2e503'
 raw = f'/home/fqf/fqf_folder/01_Git/MIND/data/{id}/scenario_{id}.parquet'
 map_path = f'/home/fqf/fqf_folder/01_Git/MIND/data/{id}/log_map_archive_{id}.json'
 
