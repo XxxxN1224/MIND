@@ -11,7 +11,7 @@
             "program": "${workspaceFolder}/run_sim.py",
             "console": "integratedTerminal",
             "args": [
-                "--config", "configs/demo_10.json"
+                "--config", "configs/demo_1.json"
             ],
             "env": {
                 "CUDA_VISIBLE_DEVICES": "0"

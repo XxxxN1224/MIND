@@ -26,7 +26,7 @@ class Simulator:
         self.seq_path = os.path.join('data/', self.seq_id)
 
         self.smp = SemanticMap()
-        self.smp.load_from_argo2(Path(self.seq_path + f"/log_map_archive_{self.seq_id}.json"))
+        self.smp.load_from_argo2(Path(self.seq_path + f"/log_map_archive_{self.seq_id}.json"))  # ArgoverseStaticMap.from_json()
 
         self.render = self.config['render']
         self.cl_agents = self.config['cl_agents']
@@ -46,7 +46,7 @@ class Simulator:
         self.agents = []
         scenario_path = Path(self.seq_path + f"/scenario_{self.seq_id}.parquet")    # 构造场景文件路径
         replay_agent_loader = ArgoAgentLoader(scenario_path)
-        self.agents += replay_agent_loader.load_agents(self.smp, self.cl_agents)    # 只有一个是MIND定义的，其他都是env的且没有交互
+        self.agents += replay_agent_loader.load_agents(self.smp, self.cl_agents)    # 只有cl_agents是MIND定义的，其他都是env的且没有交互
 
     def run_sim(self):
         print("Running simulation...")
