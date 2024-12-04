@@ -73,15 +73,15 @@ class Simulator:
 
             # Update local semantic map and plan
             for agent in self.agents:
-                if isinstance(agent, CustomizedAgent):
+                if isinstance(agent, CustomizedAgent):  # 也就是AV
                     agent.check_enable(self.sim_time)
-                    rec_tri, pl_tri = agent.check_trigger(self.sim_time)
+                    rec_tri, pl_tri = agent.check_trigger(self.sim_time)    # record_trigger 和 planner_trigger
 
-                    if rec_tri:
+                    if rec_tri: # record_trigger
                         agent.step()
-                    if pl_tri:
+                    if pl_tri:  # planner_trigger
                         agent.update_observation(agent_obs)
-                        if agent.is_enable:  # if enable then plan to get control
+                        if agent.is_enable:  # if enable then plan to get control 在check_enable()里
                             is_success, res = agent.plan()  # ego veh在4s后被使能开始规划
                             if not is_success:
                                 print("Agent {} plan failed!".format(agent.id))

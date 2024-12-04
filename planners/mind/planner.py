@@ -158,7 +158,7 @@ class MINDPlanner:
         """
         规划函数，用于计算最优轨迹和控制指令。
 
-        :param lcl_smp: 当前样本，包含环境和车辆信息
+        :param lcl_smp: 语义地图
         :return: 布尔值表示规划是否成功，最优控制指令，以及规划结果的调试信息
         """
         t0 = time.time()
@@ -195,7 +195,7 @@ class MINDPlanner:
         print("mind planning done in {} secs".format(time.time() - t0))
 
         # select the best trajectory
-		# 选择最优轨迹
+		# 选择最优轨迹：没有 contingency planning !!！
         best_traj_idx = None
         min_cost = np.inf
         for idx, traj_tree in enumerate(traj_trees):
@@ -217,7 +217,7 @@ class MINDPlanner:
         以 1.0 米的间隔重新采样目标车道及其相关信息。
 
         参数:
-        lcl_smp: 包含要重新采样的目标车道和目标车道信息。
+        lcl_smp: 语义地图信息。
 
         返回:
         resample_target_lane: 一个包含重新采样车道点的 NumPy 数组。

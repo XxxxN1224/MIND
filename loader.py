@@ -22,7 +22,7 @@ class ArgoAgentLoader:
         返回:
             初始化后的智能体实体列表，包括每个智能体的配置信息和行为预测模型。
         """
-        cl_agts = self.get_closed_loop_agents(cl_agt_cfg)   # 获取AV的config
+        cl_agts = self.get_closed_loop_agents(cl_agt_cfg)   # 根据cl_agt_cfg和smp里的AV信息配置cl_agts
         trajs_info = self.get_trajs_info(smp)   # 获取trajs信息
         agents = []
 
@@ -30,7 +30,7 @@ class ArgoAgentLoader:
 
             traj_info = [traj_pos, traj_ang, traj_vel, has_flag]
 
-            if traj_tid in cl_agts: # 检查当前实体是否为闭环智能体
+            if traj_tid in cl_agts: # 找到AV，并将cl_agts配置赋值到智能体实体中
 
                 agent_file, agent_name = cl_agts[traj_tid]["agent"].split(':')  # 分割以获取智能体的文件路径和类名
                 planner_cfg = cl_agts[traj_tid]["planner_config"]   # 获取智能体的规划器配置
@@ -74,7 +74,7 @@ class ArgoAgentLoader:
         if cl_agt_cfg is None:# 如果闭环代理配置列表为空，则直接返回空字典
             return closed_loop_agents
         
-        for c in cl_agt_cfg:    # 遍历配置列表中的每个代理配置
+        for c in cl_agt_cfg:    # 遍历配置列表中的每个代理配置，但实际上cl_agt_cfg的len=1
             agt_id = c["id"]    # 获取当前代理的ID
 
             if agt_id in closed_loop_agents.keys(): # 如果当前代理ID已经在闭环代理字典中存在，则跳过此配置
@@ -116,21 +116,23 @@ class ArgoAgentLoader:
         - trajs_cat: 每个轨迹的轨迹类别列表。
         - has_flags: 数组，指示每个轨迹的每个时间步是否有数据。
         """
-        scenario = scenario_serialization.load_argoverse_scenario_parquet(self.data_path)   # 从Parquet文件加载场景数据
+        scenario = scenario_serialization.load_argoverse_scenario_parquet(self.data_path)   # av2的api，从Parquet文件加载场景数据
 
         obs_len = 50    # 定义观察长度
         scored_idcs, unscored_idcs, fragment_idcs = list(), list(), list()  # exclude AV
 
-        for idx, x in enumerate(scenario.tracks):   # 遍历所有轨迹进行分类
+        for idx, x in enumerate(scenario.tracks):   # 筛选，仅处理以下类型agent的轨迹
+            # scenario.focal_track_id告诉你哪一个具体的轨迹是当前场景的主要关注点
+            # TrackCategory.FOCAL_TRACK则是用于表示这条轨迹具有特殊的重要性
             if x.track_id == scenario.focal_track_id and x.category == TrackCategory.FOCAL_TRACK:
                 focal_idx = idx
             elif x.track_id == 'AV':
                 av_idx = idx
-            elif x.category == TrackCategory.SCORED_TRACK:
+            elif x.category == TrackCategory.SCORED_TRACK:  # 被标记为可以评估或打分的实体，场景中的关键参与者
                 scored_idcs.append(idx)
-            elif x.category == TrackCategory.UNSCORED_TRACK:
+            elif x.category == TrackCategory.UNSCORED_TRACK:    # 这类轨迹是不参与评分的对象
                 unscored_idcs.append(idx)
-            elif x.category == TrackCategory.TRACK_FRAGMENT:
+            elif x.category == TrackCategory.TRACK_FRAGMENT:    # 一个不完整的轨迹片段，物体只在场景的一部分时间内可见
                 fragment_idcs.append(idx)
 
         assert av_idx is not None, '[ERROR] Wrong av_idx'
@@ -163,10 +165,10 @@ class ArgoAgentLoader:
             ts = np.arange(0, 110)  # [0, 1,..., 109]
             ts_obs = ts[obs_len - 1]  # always 49
 
-            # # * only contains future part：过滤掉未来部分的轨迹
+            # * only contains future part：过滤掉未来部分的轨迹
             if traj_ts[0] > ts_obs:
                 continue
-            # # * not observed at ts_obs：过滤掉在ts_obs时间步没有观测到的轨迹
+            # * not observed at ts_obs：过滤掉在ts_obs时间步没有观测到的轨迹
             if ts_obs not in traj_ts:
                 continue
 
@@ -189,7 +191,7 @@ class ArgoAgentLoader:
 
             # 创建标记数组
             has_flag = np.zeros_like(ts)
-            # # print(has_flag.shape, traj_ts.shape, traj_ts)
+            # print(has_flag.shape, traj_ts.shape, traj_ts)
             has_flag[traj_ts] = 1
 
             # object type：对象类型
