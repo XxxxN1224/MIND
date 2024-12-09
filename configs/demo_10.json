@@ -1,0 +1,26 @@
+{
+    "sim_name": "demo_10",
+    "seq_id": "3df7a6c0-5f19-490f-89df-931cfdb2e503",
+    "output_dir": "outputs/demo_10/",
+    "num_threads": 16,
+    "render": true,
+    "render_config": {
+        "mode": "fixed",
+        "camera_position": {
+            "x": -287,
+            "y":  3266,
+            "yaw": 0,
+            "elev": 90
+        }
+    },
+    "cl_agents": [
+        {
+            "id": "AV",
+            "enable_timestep": 4.0,
+            "semantic_lane": -1,
+            "target_velocity": 8,
+            "agent": "agent:MINDAgent",
+            "planner_config": "planners/mind/configs/demo_10.json"
+        }
+    ]
+}

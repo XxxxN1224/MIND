@@ -48,7 +48,8 @@ conda activate mind
 
 ### Install dependencies
 ```
-pip install -r requirements.txt 
+pip install -r requirements.txt --index-url https://pypi.tuna.tsinghua.edu.cn/simple
+【另外可能需要安装：mkl-service】
 ```
 
 ## 🕹️ Run a closed-loop simulation

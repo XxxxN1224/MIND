@@ -26,7 +26,7 @@ class Simulator:
         self.seq_path = os.path.join('data/', self.seq_id)
 
         self.smp = SemanticMap()
-        self.smp.load_from_argo2(Path(self.seq_path + f"/log_map_archive_{self.seq_id}.json"))
+        self.smp.load_from_argo2(Path(self.seq_path + f"/log_map_archive_{self.seq_id}.json"))  # ArgoverseStaticMap.from_json()
 
         self.render = self.config['render']
         self.cl_agents = self.config['cl_agents']
@@ -44,9 +44,9 @@ class Simulator:
 
     def init_sim(self):
         self.agents = []
-        scenario_path = Path(self.seq_path + f"/scenario_{self.seq_id}.parquet")
+        scenario_path = Path(self.seq_path + f"/scenario_{self.seq_id}.parquet")    # 构造场景文件路径
         replay_agent_loader = ArgoAgentLoader(scenario_path)
-        self.agents += replay_agent_loader.load_agents(self.smp, self.cl_agents)
+        self.agents += replay_agent_loader.load_agents(self.smp, self.cl_agents)    # 只有cl_agents是MIND定义的，其他都是env的且没有交互
 
     def run_sim(self):
         print("Running simulation...")
@@ -73,16 +73,16 @@ class Simulator:
 
             # Update local semantic map and plan
             for agent in self.agents:
-                if isinstance(agent, CustomizedAgent):
+                if isinstance(agent, CustomizedAgent):  # 也就是AV
                     agent.check_enable(self.sim_time)
-                    rec_tri, pl_tri = agent.check_trigger(self.sim_time)
+                    rec_tri, pl_tri = agent.check_trigger(self.sim_time)    # record_trigger 和 planner_trigger
 
-                    if rec_tri:
+                    if rec_tri: # record_trigger
                         agent.step()
-                    if pl_tri:
+                    if pl_tri:  # planner_trigger
                         agent.update_observation(agent_obs)
-                        if agent.is_enable:  # if enable then plan to get control
-                            is_success, res = agent.plan()
+                        if agent.is_enable:  # if enable then plan to get control 在check_enable()里
+                            is_success, res = agent.plan()  # ego veh在4s后被使能开始规划
                             if not is_success:
                                 print("Agent {} plan failed!".format(agent.id))
                                 terminated = True
