@@ -275,10 +275,29 @@ class CustomizedAgent(NonReactiveAgent):
         pass
 
     def check_trigger(self, sim_time):
+        """
+        检查并决定是否触发记录和规划事件。
+
+        该方法根据当前时间和规划步骤来确定是否应该触发规划事件，
+        同时根据是否启用状态决定是否触发记录事件。
+
+        参数:
+        sim_time (float): 当前模拟时间。
+
+        返回:
+        tuple: 包含两个布尔值，分别指示是否触发记录事件（record_trigger）
+            和是否触发规划事件（planner_trigger）。
+        """
+        # 初始化记录触发器和规划触发器为False
         record_trigger = False
         planner_trigger = False
+
+        # 如果当前状态不是启用状态，则通过调用父类的check_trigger方法检查记录触发器
         if not self.is_enable:
             record_trigger = super().check_trigger(sim_time)
+
+        # 如果从未plan过，或者sim_time与上一次规划触发时间的差值>= self.plan_step，
+        # 则触发规划事件，并更新上一次规划触发时间为当前时间
         if self.last_pl_tri is None or (sim_time - self.last_pl_tri) >= self.plan_step:
             planner_trigger = True
             self.last_pl_tri = sim_time
@@ -327,6 +346,6 @@ class MINDAgent(CustomizedAgent):
         return is_success, best_tree_set
 
     def update_observation(self, agents):
-        self.lcl_smp.update_observation(agents)
+        self.lcl_smp.update_observation(agents) # 找AV
         self.planner.update_observation(self.lcl_smp)
 

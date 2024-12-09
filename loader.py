@@ -16,8 +16,8 @@ class ArgoAgentLoader:
         根据 语义地图信息 和 闭环智能体配置 加载智能体实体。
 
         参数:
-            smp: 语义地图 SemanticMap。
-            cl_agt_cfg: 闭环智能体的配置信息，指示如何初始化和配置闭环智能体。
+            smp: SemanticMap，从.json文件中读取的语义地图
+            cl_agt_cfg: 闭环智能体的配置信息，指示如何初始化和配置闭环智能体，config 文件里配置的。
 
         返回:
             初始化后的智能体实体列表，包括每个智能体的配置信息和行为预测模型。
@@ -105,7 +105,7 @@ class ArgoAgentLoader:
         它还执行数据过滤和填充，以确保后续处理所需的数据格式和完整性。
 
         参数:
-        - smp: 样本对象，包含关于场景和语义地图的信息。
+        - smp: 语义地图，从.json文件中读取
 
         返回:
         - trajs_pos: 轨迹位置数组。
@@ -165,25 +165,25 @@ class ArgoAgentLoader:
             ts = np.arange(0, 110)  # [0, 1,..., 109]
             ts_obs = ts[obs_len - 1]  # always 49
 
-            # * only contains future part：过滤掉未来部分的轨迹
+            # * only contains future part：剔除未来部分的轨迹
             if traj_ts[0] > ts_obs:
                 continue
-            # * not observed at ts_obs：过滤掉在ts_obs时间步没有观测到的轨迹
+            # * not observed at ts_obs：剔除在ts_obs时间步没有观测到的轨迹
             if ts_obs not in traj_ts:
                 continue
 
-            # * far away from map (only for observed part)：过滤掉远离地图的轨迹
+            # * far away from map (only for observed part)：判断轨迹点是否位于语义车道上，过滤掉远离地图的轨迹
             traj_obs_pts = traj_pos[:obs_len]  # [N_{frames}, 2]
             on_lanes = []
             on_lane_thres = 5.0
-            for traj_pt in traj_obs_pts:
+            for traj_pt in traj_obs_pts:    # 遍历每个轨迹点 traj_pt
                 on_lane = False
-                for semantic_lane in smp.semantic_lanes.values():
-                    proj_pt, _, _ = project_point_on_polyline(traj_pt, semantic_lane)
-                    if np.linalg.norm(proj_pt - traj_pt) < on_lane_thres:
-                        on_lane = True
+                for semantic_lane in smp.semantic_lanes.values():   # 对于每个轨迹点，遍历所有语义车道 
+                    proj_pt, _, _ = project_point_on_polyline(traj_pt, semantic_lane)   # 将轨迹点投影到当前语义车道上，得到投影点 proj_pt
+                    if np.linalg.norm(proj_pt - traj_pt) < on_lane_thres:   # 计算投影点与轨迹点之间的距离
+                        on_lane = True  # 如果距离小于阈值 on_lane_thres，则认为该轨迹点在车道上，设置 on_lane 为 True 并跳出内层循环
                         break
-                on_lanes.append(on_lane)
+                on_lanes.append(on_lane)    # 将 on_lane 的结果添加到 on_lanes 列表中
 
             # if any of the observed points is not on the lane, then skip：如果任何一个观测点不在车道上，则跳过
             if not np.all(on_lanes):
