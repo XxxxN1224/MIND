@@ -1104,17 +1104,35 @@ class ScenePredNet(nn.Module):
         - out: 预测的场景图模型输出
         """
 
-        # 解包输入数据
+        # 解包输入数据。【和simpl相比前五项只有batch size不同，另多出tgt_nodes和tgt_rpe】
+        # actors: [39， 14， 48]。这个39是变化的actor数量，14是actor的feature数量，48是actor的obs长度。【simpl是[108， 14， 48]，两者相同】
+        # actor_idcs: 1组，0～38，共39个actor。【simpl是4组(args.train_batch_size)，0~20， 21~39， 40~65， 66~107。共108个actor，batch size和场景不同】
+        # lanes: [55, 10, 16]。这个55是变化的lane数量，10是lane的feature数量，16是lane的obs长度。【simpl是[255, 10, 16]，两者相同】
+        # lane_idcs: 1组，0～54，共55个lane。【simpl是4组(args.train_batch_size), 0~109, 110~172, 173~198, 199~255。共256个lane，batch size和场景不同]
+        # rpe: [5, 94, 94]【simpl是4组(args.train_batch_size)，[5, 131, 131], [5, 82, 82], [5, 52, 52], [5, 99, 99]。actors和lanes的全连接GNN，batch size和场景不同】
+        # tgt_nodes:[1, 10, 16]
+        # tgt_rpe: [1, 20]
         actors, actor_idcs, lanes, lane_idcs, rpe, tgt_nodes, tgt_rpe = data
 
         # 1.actors/lanes encoding，基于FPN和PointNet
-        actors = self.actor_net(actors)  # output: [N_{actor}, 128]
-        lanes = self.lane_net(lanes)  # output: [N_{lane}, 128]
+        actors = self.actor_net(actors)  # output: [N_{actor}, 128]，即[39， 128]【simpl是[108, 128]，batch size和场景不同】
+        lanes = self.lane_net(lanes)  # output: [N_{lane}, 128]，即[55， 128]，【simpl是[256, 128]，batch size和场景不同】
+
         # 2.tgt encode, 这东西是high-level commands的出来的Target node。tgt_feat在pred_scene使用相当于high-level commands仅放在了decoder里
-        tgt_feat = self.lane_net(tgt_nodes)  # output: [1, 128]
+        tgt_feat = self.lane_net(tgt_nodes)  # output: [1, 128]。[1, 10, 16] -> [128]。【simpl里没这一行】
+
         # 3.fusion，这里是基于GNN的transformer encoding。actor和lane是node，rpe是edge
+        # 输入和simpl相同，但输出比simpl多了cls
+        # simpl的output: actors:[108, 128], lanes[256, 128], 没有cls
+        # MIND: actors:[39, 128] -> [39, 128], lanes[55, 128] -> [55, 128], cls:None -> [1, 128]
         actors, lanes, cls = self.fusion_net(actors, actor_idcs, lanes, lane_idcs, rpe)
+        
         # 4.decoding，输入竟然没有lanes feature（但是有cls，相当于env feature了）
+        # 输入比simpl多了cls[1, 128], tgt_feat[128], tgt_rpe[1, 20]
+        # out有3组数据，分别是res_cls, res_reg, res_aux
+        # res_cls:[1, 6]。【simpl有(args.train_batch_size)组数据，是[N_{actor}, n_mod]：[21, 6], [19, 6], [26, 6], [42, 6]】
+        # res_reg:[39, 6, 60, 5]。【simpl有(args.train_batch_size)组数据，是[[N_{actor}, n_mod, pred_len, 2]: [21, 6, 60, 2], [19, 6, 60, 2], [26, 6, 60, 2], [42, 6, 60, 2]
+        # res_aux:...
         out = self.pred_scene(cls, actors, actor_idcs, tgt_feat, tgt_rpe)   # cls就是SceneDecoder中forward里的context，是从FusionNet里来的
 
         return out
