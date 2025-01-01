@@ -1122,16 +1122,16 @@ class ScenePredNet(nn.Module):
         tgt_feat = self.lane_net(tgt_nodes)  # output: [1, 128]。[1, 10, 16] -> [128]。【simpl里没这一行】
 
         # 3.fusion，这里是基于GNN的transformer encoding。actor和lane是node，rpe是edge
-        # 输入和simpl相同，但输出比simpl多了cls
+        # 输入和simpl相同，但输出的cls后续用到了
         # simpl的output: actors:[108, 128], lanes[256, 128], 没有cls
         # MIND: actors:[39, 128] -> [39, 128], lanes[55, 128] -> [55, 128], cls:None -> [1, 128]
         actors, lanes, cls = self.fusion_net(actors, actor_idcs, lanes, lane_idcs, rpe)
         
-        # 4.decoding，输入竟然没有lanes feature（但是有cls，相当于env feature了）
-        # 输入比simpl多了cls[1, 128], tgt_feat[128], tgt_rpe[1, 20]
+        # 4.decoding，输入竟然没有lanes feature（但是有cls，相当于env feature了）。这是MIND和SIMPL最主要的区别
+        # 输入比simpl多了cls[1, 128], tgt_feat[128], tgt_rpe[1, 20]；simpl是agent赢者通吃，MIND是scene赢者通吃；res_reg里5和2的区别在于除了x/y多了yaw/velocity和协方差，用于组成traj和选取branch node
         # out有3组数据，分别是res_cls, res_reg, res_aux
-        # res_cls:[1, 6]。【simpl有(args.train_batch_size)组数据，是[N_{actor}, n_mod]：[21, 6], [19, 6], [26, 6], [42, 6]】
-        # res_reg:[39, 6, 60, 5]。【simpl有(args.train_batch_size)组数据，是[[N_{actor}, n_mod, pred_len, 2]: [21, 6, 60, 2], [19, 6, 60, 2], [26, 6, 60, 2], [42, 6, 60, 2]
+        # res_cls:[1, 6]。【simpl有(args.train_batch_size)组数据，是[N_{actor}, n_mod]：[21, 6], [19, 6], [26, 6], [42, 6]】。
+        # res_reg:[39, 6, 60, 5]。【simpl有(args.train_batch_size)组数据，是[[N_{actor}, n_mod, pred_len, 2]: [21, 6, 60, 2], [19, 6, 60, 2], [26, 6, 60, 2], [42, 6, 60, 2]。
         # res_aux:...
         out = self.pred_scene(cls, actors, actor_idcs, tgt_feat, tgt_rpe)   # cls就是SceneDecoder中forward里的context，是从FusionNet里来的
 
