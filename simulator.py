@@ -14,7 +14,7 @@ from loader import ArgoAgentLoader
 from common.semantic_map import SemanticMap
 matplotlib.use('Agg')
 
-
+#load config file, initialize simulator, run simulation, render video*/
 class Simulator:
     def __init__(self, config_path):
         with open(config_path, 'r') as file:
@@ -25,16 +25,16 @@ class Simulator:
         self.num_threads = self.config['num_threads']
         self.seq_path = os.path.join('data/', self.seq_id)
 
-        self.smp = SemanticMap()
+        self.smp = SemanticMap()  #加载语义地图
         self.smp.load_from_argo2(Path(self.seq_path + f"/log_map_archive_{self.seq_id}.json"))  # ArgoverseStaticMap.from_json()
 
         self.render = self.config['render']
         self.cl_agents = self.config['cl_agents']
-
+#*initialize simulator*/
         self.sim_time = 0.0
         self.sim_step = 0.02
-        self.sim_horizon = 500
-        self.agents = []
+        self.sim_horizon = 500  #模拟范围
+        self.agents = []      #代理列表
         self.frames = []
 
     def run(self):

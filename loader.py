@@ -108,13 +108,13 @@ class ArgoAgentLoader:
         - smp: 语义地图，从.json文件中读取
 
         返回:
-        - trajs_pos: 轨迹位置数组。
-        - trajs_ang: 轨迹角度数组。
-        - trajs_vel: 轨迹速度数组。
+        - trajs_pos: 轨迹位置数组。 [N, 110(50), 2]
+        - trajs_ang: 轨迹角度数组。[N, 110(50)]
+        - trajs_vel: 轨迹速度数组。[N, 110(50), 2]
         - trajs_type: 每个轨迹的对象类型列表。
         - trajs_tid: 每个轨迹的轨迹ID列表。
         - trajs_cat: 每个轨迹的轨迹类别列表。
-        - has_flags: 数组，指示每个轨迹的每个时间步是否有数据。
+        - has_flags: 数组，指示每个轨迹的每个时间步是否有数据。[N, 110(50)]
         """
         scenario = scenario_serialization.load_argoverse_scenario_parquet(self.data_path)   # av2的api，从Parquet文件加载场景数据
 

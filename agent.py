@@ -74,14 +74,14 @@ class PlainAgent:
 
 class NonReactiveAgent(PlainAgent):
     def __init__(self):
-        super(NonReactiveAgent, self).__init__()
+        super(NonReactiveAgent, self).__init__()# 调用父类函数PlainAgent
         self.traj_info = None
         self.traj_type = None
         self.traj_cat = None
         self.rec_step = 0
         self.max_step = 0
         self.lcl_smp = None
-
+# 初始化agent，包括id，颜色，轨迹类型，轨迹类别，轨迹信息，包围盒。
     def init(self, agt_id, traj_type, traj_cat, traj_info, smp, clr):
         self.id = agt_id
         self.clr = clr
@@ -103,12 +103,12 @@ class NonReactiveAgent(PlainAgent):
             self.bbox = UnknownBBox()
         else:
             self.bbox = UnknownBBox()  # for all static objects
-
+#提取了轨迹位置，角度，速度信息
         traj_pos, traj_ang, traj_vel = self.traj_info[:3]
-        self.state = np.array([traj_pos[self.rec_step][0], traj_pos[self.rec_step][1],
+        self.state = np.array([traj_pos[self.rec_step][0], traj_pos[self.rec_step][1],#智能体状态包含位置，速度和角度
                                traj_vel[self.rec_step], traj_ang[self.rec_step]])
         self.ctrl = np.array([0.0, 0.0])
-        self.max_step = len(self.traj_info[0]) - 1
+        self.max_step = len(self.traj_info[0]) - 1    #计算的是第一个子列表即位置信息的长度，即size维度。
         self.lcl_smp = LocalSemanticMap(self.id, smp)  # not used
         self.timestep = 0.0
         # print("[Agent]: id: {} Initialized with traj_len:{}.".format(self.id, len(self.traj_info[0])))
@@ -121,7 +121,7 @@ class NonReactiveAgent(PlainAgent):
             print("[Agent]: No.{} replay finished.".format(self.id))
             return
         self.rec_step += 1
-
+#？？为什么又写一遍traj.type的赋值？可以直接运算timestep吗？
     def update_state(self, dt):
         self.type = self.traj_type[self.rec_step]
         if self.type == ObjectType.VEHICLE:
@@ -148,7 +148,7 @@ class NonReactiveAgent(PlainAgent):
     def is_valid(self):
         return self.traj_info[-1][self.rec_step]
 
-
+#进一步初始化规划器，并设置是否启用
 class CustomizedAgent(NonReactiveAgent):
     def __init__(self):
         super(CustomizedAgent, self).__init__()
@@ -169,7 +169,7 @@ class CustomizedAgent(NonReactiveAgent):
 
         #  compute target velocity
         if target_velocity is None:
-            target_velocity = np.mean(self.traj_info[2], axis=0)
+            target_velocity = np.mean(self.traj_info[2], axis=0)  #axis=0表示沿着列方向计算平均值，如果需要按行计算平均值，应将axis参数设置为1
 
         self.lcl_smp = LocalSemanticMap(self.id, smp)
         self.lcl_smp.update_target_lane(virtual_semantic_lane)
@@ -179,17 +179,17 @@ class CustomizedAgent(NonReactiveAgent):
         self.timestep = 0.0
         self.init_state_ctrl()
 
-
-    def get_target_lane(self, smp, use_traj, semantic_lane_id):
+#获取目标车道，车辆应该行驶的车道
+    def get_target_lane(self, smp, use_traj, semantic_lane_id):#use_traj为一个boolean量， 可以决定是否使用agent的历史轨迹信息作为输入
         traj_pos, traj_ang = self.traj_info[:2]
-
+#确定语义车道ID
         if semantic_lane_id is None:  # get the closest semantic lane
             semantic_lane_id = self.get_closest_semantic_lane(smp, traj_pos, traj_ang)
             if semantic_lane_id is None:  # use the historical trajectory as the target lane
                 virtual_target_lane = self.get_virtual_target_lane(traj_pos)
                 # extending the historical trajectory as the semantic lane
                 extend_pos = virtual_target_lane[-1] + (virtual_target_lane[-1] - virtual_target_lane[-2]) * 10.0
-                virtual_target_lane = np.vstack([virtual_target_lane, extend_pos])
+                virtual_target_lane = np.vstack([virtual_target_lane, extend_pos])#将一个新的位置向量 extend_pos 添加到 virtual_target_lane 数组中
                 return virtual_target_lane, None
             if use_traj:
                 virtual_target_lane = self.get_virtual_target_lane(traj_pos)
@@ -273,7 +273,7 @@ class CustomizedAgent(NonReactiveAgent):
 
     def init_planner(self, cfg_dir):
         pass
-
+#planner trigger 和record trigger
     def check_trigger(self, sim_time):
         """
         检查并决定是否触发记录和规划事件。
@@ -318,8 +318,8 @@ class CustomizedAgent(NonReactiveAgent):
                                     self.veh_param.max_str)
         self.timestep += dt
 
-    def update_observation(self, agents):
-        self.lcl_smp.update_observation(agents)
+    def update_observation(self,                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       agents):
+        self.lcl_smp.update_observation(agents)#用于更新周围车辆的信息
 
 
 class MINDAgent(CustomizedAgent):
@@ -331,7 +331,7 @@ class MINDAgent(CustomizedAgent):
              target_velocity=None):
         #  only use the semantic lane as the target lane
         super().init(agt_id, traj_type, traj_cat, traj_info, smp, clr, use_traj, semantic_lane_id, target_velocity)
-
+#初始化planner
     def init_planner(self, cfg_dir):
         self.planner = MINDPlanner(cfg_dir)
 

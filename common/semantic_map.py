@@ -159,11 +159,11 @@ class SemanticMap:
         topos = self.map_data['LANE_TOPOS'][0]
         # get semantic lanes
         semantic_lanes = dict()
-        for idx, topo in enumerate(topos):
-            lane_points = []
+        for idx, topo in enumerate(topos):# for each lane，拓扑进行遍历
+            lane_points = []#提取车道点
             for lane_idx in topo:
-                lane_points.append(lanes[lane_idx][0])
-            lane_points = np.concatenate(lane_points, axis=0)
+                lane_points.append(lanes[lane_idx][0])#提取车道点，并添加到列表中
+            lane_points = np.concatenate(lane_points, axis=0)#将车道点列表转换为numpy数组
             semantic_lanes[idx] = lane_points
         self.semantic_lanes = semantic_lanes
         self.limits = self.map_data['LIMITS'][0]

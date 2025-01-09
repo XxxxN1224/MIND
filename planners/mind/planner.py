@@ -98,7 +98,7 @@ class MINDPlanner:
                                 (agent.state[2] * np.cos(agent.state[3]),
                                  agent.state[2] * np.sin(agent.state[3])))
         return obj_state
-
+#更新观察
     def update_observation(self, lcl_smp):
         """
         更新观察数据
@@ -146,14 +146,14 @@ class MINDPlanner:
             if len(agent.object_states) > self.obs_len:
                 # 如果某个智能体的状态序列超出了设定的长度，移除最旧的状态
                 agent.object_states.pop(0)
-
+#更新状态和控制序列指令
     def update_state_ctrl(self, state, ctrl):
         self.state = state
         self.ctrl = ctrl
 
     def update_target_lane(self, gt_tgt_lane):  # 目标车道线（gt_tgt_lane）
         self.gt_tgt_lane = gt_tgt_lane
-
+#执行实际规划
     def plan(self, lcl_smp):
         """
         规划函数，用于计算最优轨迹和控制指令。
@@ -161,6 +161,7 @@ class MINDPlanner:
         :param lcl_smp: 语义地图
         :return: 布尔值表示规划是否成功，最优控制指令，以及规划结果的调试信息
         """
+        #记录当前时间，用于计算规划过程的时间
         t0 = time.time()
         # 重置场景树生成器
         self.scen_tree_gen.reset()
@@ -176,9 +177,9 @@ class MINDPlanner:
         # 如果生成的场景树数量小于0，返回失败
         if len(scen_trees) < 0:
             return False, None, None
-
+#打印规划时间，从开始到当前时间的时间差，表示规划过程的时间，场景扩展所话费的时间
         print("scenario expand done in {} secs".format(time.time() - t0))
-        traj_trees = []
+        traj_trees = []#初始化轨迹树列表
         debug_info = []
         # 对每个场景树生成对应的轨迹树
         for scen_tree in scen_trees:
@@ -195,7 +196,7 @@ class MINDPlanner:
         print("mind planning done in {} secs".format(time.time() - t0))
 
         # select the best trajectory
-		# 选择最优轨迹：没有 contingency planning !!！
+		# 选择最优轨迹：没有 contingency planning !!！通过评估每个轨迹树的成本来找到最优的轨迹树
         best_traj_idx = None
         min_cost = np.inf
         for idx, traj_tree in enumerate(traj_trees):

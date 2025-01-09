@@ -249,6 +249,7 @@ def get_agent_trajectories(agent_obs, device):
     av_idx = None
     exo_idcs = list()  # exclude AV
     key_list = []
+    #遍历agent_obs的键值对，找到'AV'（自动驾驶车辆）的索引，并记录其他代理的索引
     for idx, key in enumerate(agent_obs.keys()):
         if key == 'AV':
             av_idx = idx
@@ -262,7 +263,7 @@ def get_agent_trajectories(agent_obs, device):
 
     # * get timesteps and timesteps
     ts = np.arange(0, obs_len)  # [0, 1,..., 49]
-    ts_obs = ts[obs_len - 1]  # always 49
+    ts_obs = ts[obs_len - 1]  # always 49,最后一个时间步
 
     # * must follows the pre-defined order
     trajs_pos, trajs_ang, trajs_vel, trajs_type, has_flags = list(), list(), list(), list(), list()
@@ -276,7 +277,7 @@ def get_agent_trajectories(agent_obs, device):
             continue
 
         # * get traj
-        observed_flag = np.array([1 if s.observed else 0 for s in track.object_states])
+        observed_flag = np.array([1 if s.observed else 0 for s in track.object_states])#一个包含对象状态的列表转换为一个布尔值数组，其中1表示该状态被观察到，0表示未观察到
 
         traj_ts = np.arange(obs_len - len(track.object_states), obs_len)
         traj_ts = traj_ts[observed_flag == 1]
@@ -288,7 +289,7 @@ def get_agent_trajectories(agent_obs, device):
         traj_ang = traj_ang[observed_flag == 1]
         traj_vel = np.array(
             [list(x.velocity) if x.observed else [0.0, 0.0] for x in track.object_states])  # [N_{frames}, 2]
-        traj_vel = traj_vel[observed_flag == 1]
+        traj_vel = traj_vel[observed_flag == 1]#过滤观测数据，只保留观测到的数据
 
         # print(has_flag.shape, traj_ts.shape, traj_ts)
         has_flag = np.zeros_like(ts)
